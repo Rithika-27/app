@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Buses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            width: 600px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .distance {
+            color: #FFD700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Nearby Buses</h1>
+        {% if buses %}
+        <p>These buses are within 5 km of your location:</p>
+        <ul>
+            {% for bus in buses %}
+            <li>
+                🚌 <strong>Bus {{ bus.bus_id }}</strong> - {{ bus.route }} <br>
+                📍 Distance: <span class="distance">{{ bus.distance }} km</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No nearby buses found within 5 km.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>

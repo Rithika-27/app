@@ -74,7 +74,7 @@
         <div id="map"></div>
 
         <!-- Hidden Form to Submit Location -->
-        <form action="{{ url_for('combine') }}" method="post">
+        <form action="{{ url_for('location_options') }}" method="get">
             <input type="hidden" id="startLocation" name="startLocation" value="">
             <button id="nextButton" type="submit">Next</button>
         </form>

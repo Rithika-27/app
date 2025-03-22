@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Action</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            width: 600px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #FFD700;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: 0.3s;
+            display: block;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #FFC107;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>What would you like to do next?</h1>
+        <form action="{{ url_for('nearby_buses') }}" method="get">
+            <button class="btn" type="submit">🚌 Show Nearby Buses</button>
+        </form>
+        <form action="{{ url_for('combine') }}" method="get">
+            <button class="btn" type="submit">🔄 Plan a Route</button>
+        </form>
+    </div>
+</body>
+
+</html>

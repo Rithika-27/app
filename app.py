@@ -8,6 +8,21 @@ app.config.from_pyfile('config.py')
 
 mongo = PyMongo(app)
 
+from math import radians, cos, sin, sqrt, atan2
+
+def haversine(lat1, lon1, lat2, lon2):
+    """Calculate the great-circle distance between two points on Earth."""
+    R = 6371  # Radius of Earth in km
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return R * c  
+
 # Home Page
 @app.route('/')
 def index():
@@ -82,7 +97,43 @@ def mapping():
 def location():
     return render_template('location.html')
 
+@app.route('/location_options', methods=['GET'])
+def location_options():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    return render_template('location_options.html')
 
+# Nearby Buses Page
+@app.route('/nearby_buses', methods=['GET'])
+def nearby_buses():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+
+    user = mongo.db.users.find_one({"email": session['email']})
+    if not user or "latitude" not in user or "longitude" not in user:
+        return jsonify({"error": "Location not found. Enable location first."}), 400
+
+    user_lat, user_lon = float(user["latitude"]), float(user["longitude"])
+
+    # Fetch all buses from track_bus collection
+    buses = list(mongo.db.track_bus.find({}, {"_id": 0}))  
+
+    # Filter buses within 5 km radius
+    nearby_buses = []
+    for bus in buses:
+        bus_lat, bus_lon = float(bus.get("latitude", 0)), float(bus.get("longitude", 0))
+        distance = haversine(user_lat, user_lon, bus_lat, bus_lon)
+
+        if distance <= 5:  # Only include buses within 5 km
+            nearby_buses.append({
+                "bus_id": bus["bus_id"],
+                "route": bus.get("route", "Unknown Route"),
+                "latitude": bus_lat,
+                "longitude": bus_lon,
+                "distance": round(distance, 2)  # Rounded distance
+            })
+
+    return render_template("nearby_buses.html", buses=nearby_buses)
 # Start and End Location Page
 @app.route('/combine', methods=['GET', 'POST'])
 def combine():
