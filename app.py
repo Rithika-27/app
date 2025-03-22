@@ -148,12 +148,15 @@ def bus_timing(bus_id):
 
 @app.route('/get_bus_location/<bus_id>', methods=['GET'])
 def get_bus_location(bus_id):
-    bus_data = mongo.db.track_bus.find_one({"bus_id": bus_id}, {"_id": 0})  # Exclude MongoDB's default _id field
+    # Check if bus_id exists in the database
+    bus_data = mongo.db.track_bus.find_one({"bus_id": bus_id}, {"_id": 0})
 
     if not bus_data:
         return jsonify({"error": "No location found for this Bus ID"}), 404
+    
+    # Render track_bus.html with bus_id
+    return render_template('track_bus.html', bus_id=bus_id)
 
-    return render_template("track_bus.html", bus_data=bus_data)
 
 # Logout Route
 @app.route('/logout')
