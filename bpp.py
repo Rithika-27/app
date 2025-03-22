@@ -1,52 +1,44 @@
 from flask import Flask, render_template, request, jsonify
 from flask_pymongo import PyMongo
-import geocoder  # To get location (latitude/longitude)
+import geocoder  
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 mongo = PyMongo(app)
 
+
+
+from flask import Flask, request, jsonify
+from flask_pymongo import PyMongo
+from config import MONGO_URI  # Ensure your config file has the MongoDB URI
+
+app = Flask(__name__)
+app.config["MONGO_URI"] = MONGO_URI
+mongo = PyMongo(app)
 # Serve Admin Page
 @app.route('/')
 def admin():
     return render_template('track_bus.html')
 
-# Start Tracking - Store bus location in MongoDB
-@app.route('/track_bus/<int:bus_id>', methods=['POST'])
-def track_bus(bus_id):
-    g = geocoder.ip('me')  # Get current location (lat, lng)
-    
-    if not g.latlng:
-        return jsonify({"message": "Could not retrieve location"}), 500
-    
-    latitude, longitude = g.latlng
-    location = g.city  # Approximate city name
+@app.route('/store_location', methods=['POST'])
+def store_location():
+    data = request.json
+    bus_id = data.get("bus_id")
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+    location = data.get("location")
 
-    tracking_data = {
-        "bus_id": bus_id,
-        "latitude": latitude,
-        "longitude": longitude,
-        "location": location
-    }
+    if not bus_id or not latitude or not longitude or not location:
+        return jsonify({"message": "Missing data"}), 400
 
     mongo.db.track_bus.update_one(
         {"bus_id": bus_id},
-        {"$set": tracking_data},
+        {"$set": {"latitude": latitude, "longitude": longitude, "location": location}},
         upsert=True
     )
 
-    return jsonify({"message": f"Tracking started for Bus ID {bus_id}."})
-
-# Stop Tracking - Remove bus tracking from MongoDB
-@app.route('/stop_tracking/<int:bus_id>', methods=['POST'])
-def stop_tracking(bus_id):
-    result = mongo.db.track_bus.delete_one({"bus_id": bus_id})
-
-    if result.deleted_count > 0:
-        return jsonify({"message": f"Tracking stopped for Bus ID {bus_id}."})
-    else:
-        return jsonify({"message": f"Bus ID {bus_id} not found in tracking."}), 404
+    return jsonify({"message": f"Location updated for Bus ID {bus_id}."})
 
 if __name__ == '__main__':
     app.run(debug=True)

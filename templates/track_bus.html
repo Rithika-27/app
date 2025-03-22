@@ -20,25 +20,45 @@
         button {
             padding: 10px 20px;
             font-size: 16px;
-            background-color: #28a745;
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            margin: 10px;
         }
 
-        button:hover {
+        .get-btn {
+            background-color: #28a745;
+        }
+
+        .get-btn:hover {
             background-color: #218838;
+        }
+
+        .update-btn {
+            background-color: #007bff;
+            display: none; /* Initially hidden */
+        }
+
+        .update-btn:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 
 <body>
     <h1>Track Your Exact Location</h1>
-    <button onclick="getLocation()">Get Location</button>
+
+    <input type="number" id="busId" placeholder="Enter Bus ID" required>
+    <br>
+    <button class="get-btn" onclick="getLocation()">Get Location</button>
+    <button class="update-btn" id="updateBtn" onclick="updateLocation()">Update</button>
+
     <p id="location">Click the button to get your latitude, longitude, and address.</p>
 
     <script>
+        let lat, lon, address;
+
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -48,41 +68,64 @@
         }
 
         function showPosition(position) {
-            let lat = position.coords.latitude;
-            let lon = position.coords.longitude;
+            lat = position.coords.latitude;
+            lon = position.coords.longitude;
 
-            // Display latitude and longitude immediately
             document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Fetching address...`;
 
-            // Use OpenStreetMap Nominatim API for reverse geocoding
             let apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
 
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    let address = data.display_name;
+                    address = data.display_name;
                     document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Address: ${address}`;
+                    document.getElementById("updateBtn").style.display = "inline-block"; // Show update button
                 })
                 .catch(error => {
                     document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Unable to retrieve address.`;
                 });
         }
 
+        function updateLocation() {
+            let busId = document.getElementById("busId").value;
+            if (!busId) {
+                alert("Please enter a Bus ID");
+                return;
+            }
+
+            fetch('/store_location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bus_id: busId, latitude: lat, longitude: lon, location: address })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    alert("Error updating location");
+                    console.error("Error:", error);
+                });
+        }
+
         function showError(error) {
+            let errorMsg = "";
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    document.getElementById("location").innerHTML = "User denied the request for Geolocation.";
+                    errorMsg = "User denied the request for Geolocation.";
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    document.getElementById("location").innerHTML = "Location information is unavailable.";
+                    errorMsg = "Location information is unavailable.";
                     break;
                 case error.TIMEOUT:
-                    document.getElementById("location").innerHTML = "The request to get user location timed out.";
+                    errorMsg = "The request to get user location timed out.";
                     break;
                 case error.UNKNOWN_ERROR:
-                    document.getElementById("location").innerHTML = "An unknown error occurred.";
+                    errorMsg = "An unknown error occurred.";
                     break;
             }
+            document.getElementById("location").innerHTML = errorMsg;
         }
     </script>
 </body>
