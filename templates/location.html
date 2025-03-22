@@ -5,21 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Location</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000000;
-            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            background-color: #000;
+            color: white;
         }
 
         .container {
@@ -33,7 +30,14 @@
 
         h1 {
             font-size: 2.5rem;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+
+        #locationDisplay {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #FFD700;
+            /* Gold color */
         }
 
         #map {
@@ -43,22 +47,18 @@
             box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
         }
 
-        #locationDisplay {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #FFD700;
-        }
-
         #nextButton {
             background-color: #FFD700;
-            color: #000000;
+            color: black;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
-            transition: background-color 0.3s;
+            transition: 0.3s;
+            display: none;
+            /* Hidden initially */
         }
 
         #nextButton:hover {
@@ -69,10 +69,11 @@
 
 <body>
     <div class="container">
-        <h1>Map Your Location</h1>
+        <h1>Your Location</h1>
         <div id="locationDisplay">Fetching location...</div>
         <div id="map"></div>
 
+        <!-- Hidden Form to Submit Location -->
         <form action="{{ url_for('combine') }}" method="post">
             <input type="hidden" id="startLocation" name="startLocation" value="">
             <button id="nextButton" type="submit">Next</button>
@@ -81,6 +82,7 @@
 
     <script>
         var map = L.map('map').setView([51.505, -0.09], 13);
+
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -88,7 +90,7 @@
 
         navigator.geolocation.watchPosition(success, error);
 
-        let marker, circle, zoomed;
+        let marker, circle, zoomed = false;
 
         function success(pos) {
             const lat = pos.coords.latitude;
@@ -105,19 +107,36 @@
 
             if (!zoomed) {
                 map.fitBounds(circle.getBounds());
+                zoomed = true;
             }
 
+            // Fetch place name from coordinates (reverse geocoding)
             fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
                 .then(response => response.json())
                 .then(data => {
                     const locationName = data.display_name;
+                    document.getElementById("locationDisplay").innerText = `📍 ${locationName}`;
+
+                    // Store location in the hidden form field
                     document.getElementById("startLocation").value = locationName;
-                    document.getElementById("locationDisplay").innerText = locationName;
+
+                    // Show the "Next" button
+                    document.getElementById("nextButton").style.display = "inline-block";
+
+                    // Send data to Flask backend
+                    fetch("/save_location", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ latitude: lat, longitude: lng, locationName: locationName })
+                    })
+                        .then(response => response.json())
+                        .then(data => console.log(data.message))
+                        .catch(error => console.error("Error saving location:", error));
                 });
         }
 
-        function error(err) {
-            alert("Unable to retrieve location. Please enable location services.");
+        function error() {
+            alert("Unable to retrieve your location.");
         }
     </script>
 </body>

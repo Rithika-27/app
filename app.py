@@ -145,17 +145,50 @@ def bus_timing(bus_id):
 
         return render_template('bus_timing.html', bus_timings=[], error=f"Error retrieving data: {str(e)}")
 
+@app.route('/save_location', methods=['POST'])
+def save_location():
+    if 'logged_in' not in session or 'email' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.json
+    email = session['email']
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    location_name = data.get('locationName')
+
+    if latitude is None or longitude is None:
+        return jsonify({"error": "Latitude and Longitude are required"}), 400
+
+    mongo.db.users.update_one(
+        {"email": email},
+        {"$set": {
+            "latitude": latitude,
+            "longitude": longitude,
+            "location_name": location_name
+        }}
+    )
+
+    return jsonify({"message": "Location updated successfully!"})
+
+@app.route('/track_bus/<bus_id>', methods=['GET'])
+def track_bus(bus_id):
+    """Render the tracking page for the given bus."""
+    return render_template('track_bus.html', bus_id=bus_id)
 
 @app.route('/get_bus_location/<bus_id>', methods=['GET'])
 def get_bus_location(bus_id):
-    # Check if bus_id exists in the database
+    """Return bus location data in JSON format."""
     bus_data = mongo.db.track_bus.find_one({"bus_id": bus_id}, {"_id": 0})
 
     if not bus_data:
         return jsonify({"error": "No location found for this Bus ID"}), 404
-    
-    # Render track_bus.html with bus_id
-    return render_template('track_bus.html', bus_id=bus_id)
+
+    return jsonify({
+        "location": bus_data.get("location", "Unknown"),
+        "latitude": bus_data.get("latitude", ""),
+        "longitude": bus_data.get("longitude", "")
+    })
+
 
 
 # Logout Route
