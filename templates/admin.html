@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Bus Tracking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #adminMessage {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Admin Panel - Bus Tracking</h1>
+    
+    <input type="number" id="busIdAdmin" placeholder="Enter Bus ID">
+    <button onclick="startTracking()">Start Tracking</button>
+    <button onclick="stopTracking()">Stop Tracking</button>
+
+    <div id="adminMessage"></div>
+
+    <script>
+        function startTracking() {
+            let busId = document.getElementById("busIdAdmin").value;
+            if (!busId) {
+                alert("Enter a Bus ID");
+                return;
+            }
+
+            fetch(`/track_bus/${busId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("adminMessage").innerHTML = `<p>${data.message}</p>`;
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        function stopTracking() {
+            let busId = document.getElementById("busIdAdmin").value;
+            if (!busId) {
+                alert("Enter a Bus ID");
+                return;
+            }
+
+            fetch(`/stop_tracking/${busId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("adminMessage").innerHTML = `<p>${data.message}</p>`;
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>

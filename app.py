@@ -4,15 +4,11 @@ import bcrypt
 
 app = Flask(__name__)
 
-
-# Load configuration from config.py
 app.config.from_pyfile('config.py')
 
-# Initialize MongoDB connection
 mongo = PyMongo(app)
 
-
-# 1st Page - Home
+# Home Page
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -33,16 +29,14 @@ def register():
             return jsonify(success=False, message="Email already registered.")
 
         try:
-            # Insert user into MongoDB
             mongo.db.users.insert_one({
                 "username": username,
                 "password": hashed_password,
                 "email": email
             })
-
-            # Set session variables
             session['logged_in'] = True
             session['email'] = email
+            session.modified = True  # Ensure session updates
 
             return jsonify(success=True)
         
@@ -62,9 +56,10 @@ def login():
 
         user = mongo.db.users.find_one({"email": email})
 
-        if user and bcrypt.checkpw(password, user['password'].encode('utf-8')):
+        if user and bcrypt.checkpw(password, user['password'].encode('utf-8')):  # Ensure bytes conversion
             session['logged_in'] = True
             session['email'] = email
+            session.modified = True  # Ensure session updates
             return redirect(url_for('mapping'))
 
         return render_template('login.html', error="Invalid email or password.")
@@ -72,18 +67,23 @@ def login():
     return render_template('login.html')
 
 
-# Enable Location (3rd Page)
+# Enable Location Page
 @app.route('/mapping', methods=['GET', 'POST'])
 def mapping():
     if session.get('logged_in'):
         if request.method == 'POST' and 'enable_location' in request.form:
             return render_template('location.html')
         return render_template('mapping.html')
-    else:
-        return redirect(url_for('login'))
+    return redirect(url_for('login'))
 
 
-# Start and End Location (4th Page)
+# Actual Location Page
+@app.route('/location')
+def location():
+    return render_template('location.html')
+
+
+# Start and End Location Page
 @app.route('/combine', methods=['GET', 'POST'])
 def combine():
     return render_template('combine.html')
@@ -113,62 +113,44 @@ def bus_routes():
         print(f"DEBUG: Error retrieving bus routes - {e}")
         return render_template('bus_routes.html', bus_routes=[], error=f"Error retrieving data: {str(e)}")
 
-from bson import ObjectId
 
+# Fetch Bus Timings
 @app.route('/bus_timing/<bus_id>', methods=['GET'])
 def bus_timing(bus_id):
     try:
-        print(f"Received bus_id: {bus_id}")
-
-        # Convert bus_id to int (if stored as integer in MongoDB)
         try:
             bus_id = int(bus_id)
         except ValueError:
-            pass  # Keep it as a string if conversion fails
+            return render_template('bus_timing.html', bus_timings=[], error="Invalid Bus ID format.")
 
-        # Fetch bus timings from MongoDB
         bus_timings = list(mongo.db.bus_timing.find({"bus_id": bus_id}))
-        print("Fetched bus timings:", bus_timings)
-
+        
         if not bus_timings:
-            print("fail")
             return render_template('bus_timing.html', bus_timings=[], error="No timings found for this bus.")
 
-        formatted_timings = []
-        for timing in bus_timings:
-            if "time" not in timing:
-                continue  # Skip entries without 'time'
-
-            formatted_time = timing["time"]  # 'time' is already in HH:MM:SS format
-
-            formatted_timings.append({
-                "id": str(timing["_id"]),  # Convert ObjectId to string
+        formatted_timings = [
+            {
+                "id": str(timing["_id"]), 
                 "bus_id": timing["bus_id"],
-                "timing": formatted_time
-            })
+                "timing": timing.get("time", "N/A")  # Avoid missing time key
+            }
+            for timing in bus_timings
+        ]
 
         return render_template('bus_timing.html', bus_timings=formatted_timings)
 
     except Exception as e:
         import traceback
-        print(traceback.format_exc())  # Print full error details
+        print(traceback.format_exc()) 
 
         return render_template('bus_timing.html', bus_timings=[], error=f"Error retrieving data: {str(e)}")
 
 
-@app.route('/track_bus/<int:bus_id>', methods=['GET'])
-def track_bus(bus_id):
-    try:
-        bus_info = mongo.db.bus_routes.find_one({"bus_id": bus_id}, {"_id": 0})
-        
-        if not bus_info:
-            return render_template('track_bus.html', error="Bus not found.")
-        
-        return render_template('track_bus.html', bus=bus_info)
-    
-    except Exception as e:
-        return render_template('track_bus.html', error=f"Error retrieving bus data: {str(e)}")
 
+
+if __name__ == '__main__':
+    app.secret_key = 'your_secret_key'  # Ensure session security
+    app.run(debug=True)
 
 # Logout Route
 @app.route('/logout')
@@ -194,14 +176,6 @@ def logout():
 
 
 
-@app.route('/location')
-def location():
-    return render_template('location.html')
-
-
-@app.route('/all_bus_routes')
-def all_bus_routes():
-    return render_template('bus_routes.html')
 
 @app.route('/update_location', methods=['POST'])
 def update_location():
