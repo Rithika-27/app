@@ -113,26 +113,33 @@ def bus_routes():
         print(f"DEBUG: Error retrieving bus routes - {e}")
         return render_template('bus_routes.html', bus_routes=[], error=f"Error retrieving data: {str(e)}")
 
+from bson import ObjectId
 
-# Fetch Bus Timings
 @app.route('/bus_timing/<bus_id>', methods=['GET'])
 def bus_timing(bus_id):
     try:
-        # Convert bus_id to string before querying (if MongoDB stores it as a string)
+        print(f"Received bus_id: {bus_id}")
+
+        # Convert bus_id to int (if stored as integer in MongoDB)
+        try:
+            bus_id = int(bus_id)
+        except ValueError:
+            pass  # Keep it as a string if conversion fails
+
+        # Fetch bus timings from MongoDB
         bus_timings = list(mongo.db.bus_timing.find({"bus_id": bus_id}))
+        print("Fetched bus timings:", bus_timings)
 
         if not bus_timings:
+            print("fail")
             return render_template('bus_timing.html', bus_timings=[], error="No timings found for this bus.")
 
         formatted_timings = []
         for timing in bus_timings:
-            if "timing" not in timing:  # Check if 'timing' exists
-                continue  # Skip entries without 'timing'
+            if "time" not in timing:
+                continue  # Skip entries without 'time'
 
-            total_seconds = timing["timing"]
-            hours, remainder = divmod(total_seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            formatted_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+            formatted_time = timing["time"]  # 'time' is already in HH:MM:SS format
 
             formatted_timings.append({
                 "id": str(timing["_id"]),  # Convert ObjectId to string
@@ -147,7 +154,8 @@ def bus_timing(bus_id):
         print(traceback.format_exc())  # Print full error details
 
         return render_template('bus_timing.html', bus_timings=[], error=f"Error retrieving data: {str(e)}")
-    
+
+
 @app.route('/track_bus/<int:bus_id>', methods=['GET'])
 def track_bus(bus_id):
     try:
