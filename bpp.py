@@ -12,7 +12,7 @@ mongo = PyMongo(app)
 # Serve Admin Page
 @app.route('/')
 def admin():
-    return render_template('track_bus.html')
+    return render_template('admin.html')
 
 @app.route('/store_location', methods=['POST'])
 def store_location():
@@ -41,7 +41,8 @@ def store_location():
     return jsonify({"message": f"Location updated for Bus ID {bus_id} at {timestamp}."})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5001, debug=True, use_reloader=False)
+    
 
 
 

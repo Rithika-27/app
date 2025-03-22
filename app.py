@@ -146,11 +146,14 @@ def bus_timing(bus_id):
         return render_template('bus_timing.html', bus_timings=[], error=f"Error retrieving data: {str(e)}")
 
 
+@app.route('/get_bus_location/<bus_id>', methods=['GET'])
+def get_bus_location(bus_id):
+    bus_data = mongo.db.track_bus.find_one({"bus_id": bus_id}, {"_id": 0})  # Exclude MongoDB's default _id field
 
+    if not bus_data:
+        return jsonify({"error": "No location found for this Bus ID"}), 404
 
-if __name__ == '__main__':
-    app.secret_key = 'your_secret_key'  # Ensure session security
-    app.run(debug=True)
+    return render_template("track_bus.html", bus_data=bus_data)
 
 # Logout Route
 @app.route('/logout')
@@ -159,44 +162,5 @@ def logout():
     return redirect(url_for('login'))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@app.route('/update_location', methods=['POST'])
-def update_location():
-    data = request.get_json()
-    bus_id = data['bus_id']
-    latitude = data['latitude']
-    longitude = data['longitude']
-
-    # Update the location in the database
-    cursor = mysql.connection.cursor()
-    cursor.execute('UPDATE bus_tracking SET latitude = %s, longitude = %s, timestamp = NOW() WHERE bus_id = %s', 
-                   (latitude, longitude, bus_id))
-    mysql.connection.commit()
-    cursor.close()
-
-    return jsonify({"status": "success"}), 200
-
-@app.route('/driver_tracking/<int:bus_id>', methods=['GET'])
-def driver_tracking(bus_id):
-    return render_template('driver_tracking.html', bus_id=bus_id)
-
 if __name__ == '__main__':
-    app.config['SECRET_KEY'] = 'xyz1234nbg789ty8inmcv2134'
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True, use_reloader=False)

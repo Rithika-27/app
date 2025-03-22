@@ -1,133 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track Your Exact Location</title>
+    <title>Track Bus</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #000;
         }
 
-        #location {
+        h1 {
+            color: #FFD700;
             margin-top: 20px;
-            font-size: 18px;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .bus-info {
+            background-color: #1c1c1c;
+            border: 1px solid #FFD700;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+            color: #FFD700;
+        }
+
+        .last-updated {
+            font-size: 0.9em;
+            color: #FFD700;
         }
 
         button {
-            padding: 10px 20px;
+            background-color: #FFD700;
+            color: black;
             font-size: 16px;
-            color: white;
+            padding: 10px 20px;
             border: none;
-            cursor: pointer;
             border-radius: 5px;
+            cursor: pointer;
             margin: 10px;
         }
 
-        .get-btn {
-            background-color: #28a745;
-        }
-
-        .get-btn:hover {
-            background-color: #218838;
-        }
-
-        .update-btn {
-            background-color: #007bff;
-            display: none; /* Initially hidden */
-        }
-
-        .update-btn:hover {
-            background-color: #0056b3;
+        button:hover {
+            background-color: #e6c200;
         }
     </style>
 </head>
-
 <body>
-    <h1>Track Your Exact Location</h1>
+    <h1>Track Bus ID: <span id="bus_id">Fetching...</span></h1>
 
-    <input type="number" id="busId" placeholder="Enter Bus ID" required>
-    <br>
-    <button class="get-btn" onclick="getLocation()">Get Location</button>
-    <button class="update-btn" id="updateBtn" onclick="updateLocation()">Update</button>
+    <div class="bus-info">
+        <p><strong>Current Location:</strong> <span id="bus_location">Fetching...</span></p>
+    </div>
 
-    <p id="location">Click the button to get your latitude, longitude, and address.</p>
+    <div id="map"></div>
+    <p class="last-updated">Last updated: <span id="last_updated">Fetching...</span></p>
+    
+    <button onclick="fetchBusLocation()">Refresh Location</button>
 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        let lat, lon, address;
+        var map = L.map('map').setView([11.008076683276654, 77.01773317145816], 14);
+        var marker = null;
 
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
-            } else {
-                document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
-            }
-        }
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-        function showPosition(position) {
-            lat = position.coords.latitude;
-            lon = position.coords.longitude;
-
-            document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Fetching address...`;
-
-            let apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
-
-            fetch(apiUrl)
+        function fetchBusLocation() {
+            fetch(`/get_bus_location/24`)
                 .then(response => response.json())
                 .then(data => {
-                    address = data.display_name;
-                    document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Address: ${address}`;
-                    document.getElementById("updateBtn").style.display = "inline-block"; // Show update button
+                    if (data.error) {
+                        document.getElementById("bus_location").innerText = data.error;
+                        document.getElementById("last_updated").innerText = "N/A";
+                        return;
+                    }
+
+                    document.getElementById("bus_id").innerText = data.bus_id;
+                    document.getElementById("bus_location").innerText = data.location;
+                    document.getElementById("last_updated").innerText = data.timestamp;
+
+                    let lat = parseFloat(data.latitude);
+                    let lon = parseFloat(data.longitude);
+
+                    map.setView([lat, lon], 14);
+                    if (marker) {
+                        marker.setLatLng([lat, lon]).bindPopup(`Bus ID: ${data.bus_id}<br>${data.location}`).openPopup();
+                    } else {
+                        marker = L.marker([lat, lon]).addTo(map)
+                            .bindPopup(`Bus ID: ${data.bus_id}<br>${data.location}`)
+                            .openPopup();
+                    }
                 })
                 .catch(error => {
-                    document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Unable to retrieve address.`;
+                    console.error("Error fetching bus location:", error);
                 });
         }
 
-        function updateLocation() {
-            let busId = document.getElementById("busId").value;
-            if (!busId) {
-                alert("Please enter a Bus ID");
-                return;
-            }
-
-            fetch('/store_location', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bus_id: busId, latitude: lat, longitude: lon, location: address })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                })
-                .catch(error => {
-                    alert("Error updating location");
-                    console.error("Error:", error);
-                });
-        }
-
-        function showError(error) {
-            let errorMsg = "";
-            switch (error.code) {
-                case error.PERMISSION_DENIED:
-                    errorMsg = "User denied the request for Geolocation.";
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    errorMsg = "Location information is unavailable.";
-                    break;
-                case error.TIMEOUT:
-                    errorMsg = "The request to get user location timed out.";
-                    break;
-                case error.UNKNOWN_ERROR:
-                    errorMsg = "An unknown error occurred.";
-                    break;
-            }
-            document.getElementById("location").innerHTML = errorMsg;
-        }
+        setInterval(fetchBusLocation, 10000);
+        fetchBusLocation();
     </script>
 </body>
-
 </html>

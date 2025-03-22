@@ -93,7 +93,7 @@
                 <a href="{{ url_for('bus_timing', bus_id=bus['bus_id']) }}">View</a> <!-- Link with underline -->
             </td>
             <td>
-                <a href="{{ url_for('track_bus', bus_id=bus['bus_id']) }}">Track</a> <!-- Link renamed to 'Track' -->
+                <a href="{{ url_for('get_bus_location', bus_id=bus['bus_id']) }}">Track</a> <!-- Link renamed to 'Track' -->
             </td>
         </tr>
         {% endfor %}
