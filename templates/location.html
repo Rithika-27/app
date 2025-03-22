@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        /* Basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000; /* Black background */
+            color: #ffffff; /* White text for contrast */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            width: 800px; /* Fixed width */
+            padding: 20px; /* Padding around the content */
+            border-radius: 10px; /* Rounded corners */
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent background */
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2); /* Soft shadow */
+        }
+
+        h1 {
+            font-size: 2.5rem; /* Larger font size for heading */
+            margin-bottom: 20px; /* Space below heading */
+        }
+
+        #map {
+            height: 350px;
+            width: 100%; /* Full width of container */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2); /* Soft shadow */
+        }
+
+        #nextButton {
+            background-color: #FFD700; /* Golden color */
+            color: #000000; /* Black text for contrast */
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        #nextButton:hover {
+            background-color: #FFC107; /* Slightly darker golden shade on hover */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Map Your Location</h1>
+        <div id="map"></div>
+
+        <!-- Form to submit location name -->
+        <form action="{{ url_for('combine') }}" method="post">
+            <input type="hidden" id="startLocation" name="startLocation" value="">
+            <button id="nextButton" type="submit">Next</button>
+        </form>
+    </div>
+
+    <script>
+        // Initialize the map and user's location
+        var map = L.map('map').setView([51.505, -0.09], 13); // Default view
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Watch user's location
+        navigator.geolocation.watchPosition(success, error);
+
+        let marker, circle, zoomed; // Marker and circle for location
+
+        function success(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy;
+
+            if (marker) {
+                map.removeLayer(marker);
+                map.removeLayer(circle);
+            }
+
+            marker = L.marker([lat, lng]).addTo(map);
+            circle = L.circle([lat, lng], { radius: accuracy }).addTo(map);
+
+            if (!zoomed) {
+                map.fitBounds(circle.getBounds());
+            }
+
+            // Fetch place name from coordinates (reverse geocoding)
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+                .then(response => response.json())
+                .then(data => {
+                    const locationName = data.display_name; // Get the location name
+                    document.getElementById("startLocation").value = locationName; // Set the value for the hidden field
+                });
+        }
+
+        function error(err) {
+            alert("Unable to retrieve location. Please enable location services.");
+        }
+    </script>
+</body>
+
+</html>

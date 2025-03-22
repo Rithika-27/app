@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Timings</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            border: 2px solid yellow;
+            display: inline-block;
+            border-radius: 10px;
+        }
+        h2 {
+            color: yellow;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid yellow;
+            padding: 10px;
+        }
+        th {
+            background-color: yellow;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Bus Timings</h2>
+        
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% elif bus_timings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bus ID</th>
+                        <th>Timing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for timing in bus_timings %}
+                        <tr>
+                            <td>{{ timing.bus_id }}</td>
+                            <td>{{ timing.timing }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="error">No timings found for this bus.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>
