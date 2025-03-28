@@ -4,151 +4,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration</title>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #000;
-            min-height: 100vh;
+            background: url('/static/login.jpg') no-repeat center center/cover;
+            height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: space-between;
+            padding: 0 10%;
+            color: white;
         }
 
-        .container {
-            width: 80%;
+        .welcome h1 {
+            font-size: 60px;
+            font-weight: bold;
+            margin-top: -170px;
+        }
+
+        .welcome p {
+            font-size: 16px;
+            color: white;
             max-width: 400px;
-            background-color: rgba(34, 34, 34, 0.9);
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            line-height: 1.5;
+        }
+
+        .social-icons {
+            margin-top: 20px;
+        }
+
+        .social-icons i {
+            color: white;
+            font-size: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        /* Styling for sign-up form */
+        form {
+            display: flex;
+            flex-direction: column;
         }
 
         h2 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
             text-align: center;
-            margin-bottom: 30px;
-            color: #e2c13c;
         }
 
         label {
-            display: block;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 10px;
-            color: #e2c13c;
+            margin-top: 15px;
         }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
+        input {
+            width: 420px;
             padding: 12px;
-            margin-bottom: 20px;
+            margin-top: 5px;
             border: none;
             border-radius: 5px;
-            box-sizing: border-box;
-            background-color: #f2f2f2;
-            box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.1);
-            transition: box-shadow 0.3s ease;
+            font-size: 16px;
+            background: white;
+            color: black;
         }
 
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.1);
-        }
-
-        input[type="submit"] {
-            background-color: #e2c13c;
-            color: #000;
+        .signup-button {
+            background: linear-gradient(135deg, #ff6f61, #de5d83);
+            color: white;
             padding: 12px;
-            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
             border-radius: 5px;
+            border: none;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-            width: 100%;
-            margin-bottom: 20px;
+            width: 445px;
+            margin-top: 30px;
+            box-shadow: 0 8px 25px rgba(255, 111, 97, 0.3);
+            transition: all 0.3s ease-in-out;
         }
 
-        input[type="submit"]:hover {
-            background-color: #d3a639;
+        .signup-button:hover {
+            background: linear-gradient(135deg, #de5d83, #ff6f61);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 111, 97, 0.5);
         }
 
-        .form-footer {
-            margin-top: 20px;
+        .signin-link {
+            margin-top: 15px;
             text-align: center;
+            font-size: 14px;
         }
 
-        .form-footer a {
-            color: #e2c13c;
+        .signin-link a {
+            color: #B7E2E9;
             text-decoration: none;
         }
 
-        .form-footer a:hover {
+        .signin-link a:hover {
             text-decoration: underline;
-        }
-
-        #message {
-            display: none;
-            margin-top: 10px;
-            text-align: center;
-            font-weight: bold;
-            color: #e2c13c;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>Registration</h2>
+    <div class="welcome">
+        <h1>Join Us!</h1>
+        <p>Track your bus in real time and plan your journey with ease. Sign up to get started.</p>
+        <div class="social-icons">
+            <i class="fab fa-facebook"></i>
+            <i class="fab fa-twitter"></i>
+            <i class="fab fa-instagram"></i>
+            <i class="fab fa-youtube"></i>
+        </div>
+    </div>
 
-        <form id="registration-form" action="{{ url_for('register') }}" method="post">
-            <label for="username">Name:</label>
-            <input type="text" id="username" name="username" required>
+    <div>
+        <h2>Sign Up</h2>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        <form action="{{ url_for('mapping') }}" method="post">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
 
-            <label for="email">Email:</label>
+            <label for="email">Email Address</label>
             <input type="email" id="email" name="email" required>
 
-            <label for="password">Password:</label>
+            <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
 
-            <input type="submit" value="Register">
+            <button type="submit" class="signup-button">Sign up now</button>
+
+            <p class="signin-link">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
         </form>
-        <div class="form-footer">
-            <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
-        </div>
-        <div id="message"></div>
     </div>
-    
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-        $(document).ready(function () {
-    $('#registration-form').submit(function (event) {
-        event.preventDefault(); // Prevent the form from submitting the traditional way
-
-        $.ajax({
-            type: 'POST',
-            url: '{{ url_for("register") }}',
-            data: $(this).serialize(), // Serialize the form data for the server
-            success: function (response) {
-                // Check if the registration was successful
-                if (response.success) {
-                    // Navigate to the mapping page after successful registration
-                    window.location.href = '/mapping'; // Assuming /mapping is the route for the mapping page
-                } else {
-                    $('#message').html('<p style="color: red;">' + response.message + '</p>').show();
-                }
-            },
-            error: function () {
-                $('#message').html('<p style="color: red;">An error occurred. Please try again later.</p>').show();
-            }
-        });
-    });
-});
-
-    </script>
 </body>
 
 </html>

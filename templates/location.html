@@ -10,22 +10,23 @@
 
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #000;
-            color: white;
+            background: url("{{ url_for('static', filename='bg1.jpg') }}") no-repeat center/cover;
+            color: black;
         }
 
         .container {
             text-align: center;
             width: 800px;
             padding: 20px;
-            border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         h1 {
@@ -36,20 +37,20 @@
         #locationDisplay {
             font-size: 1.2rem;
             margin-bottom: 15px;
-            color: #FFD700;
-            /* Gold color */
+            color: #ff787f;
         }
 
         #map {
             height: 350px;
             width: 100%;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         #nextButton {
-            background-color: #FFD700;
+            background-color: #ff787f;
             color: black;
+            font-family: 'Poppins', sans-serif;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
@@ -58,11 +59,10 @@
             margin-top: 20px;
             transition: 0.3s;
             display: none;
-            /* Hidden initially */
         }
 
         #nextButton:hover {
-            background-color: #FFC107;
+            background-color: #e66066;
         }
     </style>
 </head>

@@ -8,117 +8,175 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #000; /* Changed to black */
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: url('/static/login.jpg') no-repeat center center/cover;
             height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10%;
+            color: white;
         }
 
-        .container {
-            background-color: rgba(34, 34, 34, 0.9); /* Similar dark background for the container */
-            padding: 40px;
-            border-radius: 10px; /* Same border radius as registration */
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-            width: 80%;
-            max-width: 400px; /* Adjusted max-width for consistency */
+        .welcome h1 {
+            font-size: 60px;
+            font-weight: bold;
+            margin-top: -170px;
         }
 
-        h1 {
+        .welcome p {
+            font-size: 16px;
+            color: white;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .social-icons {
+            margin-top: 20px;
+        }
+
+        .social-icons i {
+            color: white;
+            font-size: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        /* Styling for sign-in form */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
             text-align: center;
-            margin-bottom: 30px;
-            color: #e2c13c; /* Gold color for the title */
         }
 
         label {
-            display: block;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 10px;
-            color: #e2c13c; /* Gold color for labels */
+            margin-top: 15px;
         }
 
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
+        input {
+            width: 420px;
             padding: 12px;
-            margin-bottom: 20px;
+            margin-top: 5px;
             border: none;
             border-radius: 5px;
-            box-sizing: border-box;
-            background-color: #f2f2f2; /* Light background for inputs */
-            color: #000; /* Black text for inputs */
-            box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.1);
-            transition: box-shadow 0.3s ease;
+            font-size: 16px;
+            background: white;
+            color: black;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
         }
 
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.1);
+        .remember-me input {
+            width: auto;
+            margin-right: 10px;
         }
 
-        input[type="submit"] {
-            background-color: #e2c13c; /* Gold button color */
-            color: #000; /* Black text */
+        .login-button {
+            background: linear-gradient(135deg, #ff6f61, #de5d83);
+            color: white;
             padding: 12px;
-            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
             border-radius: 5px;
+            border: none;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-            width: 100%; /* Full width for consistency */
-            margin-bottom: 20px; /* Space between button and footer */
+            width: 445px;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(255, 111, 97, 0.3);
+            transition: all 0.3s ease-in-out;
         }
 
-        input[type="submit"]:hover {
-            background-color: #d3a639; /* Darker gold on hover */
+        .login-button:hover {
+            background: linear-gradient(135deg, #de5d83, #ff6f61);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 111, 97, 0.5);
         }
 
-        .error {
-            color: red;
+        .forgot-password {
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .forgot-password a {
+            color: #B7E2E9;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .terms {
+            font-size: 12px;
+            margin-top: 15px;
             text-align: center;
-            margin-bottom: 20px;
         }
 
-        .icon {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            right: 15px;
-            color: #999;
+        .terms a {
+            color: #B7E2E9;
+            text-decoration: none;
         }
 
-        .input-container {
-            position: relative;
-        }
-
-        .input-container input:focus + .icon {
-            color: #007bff; /* Focus color for icons */
+        .terms a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Login</h1>
+    <div class="welcome">
+        <h1>Welcome Back!</h1>
+        <p>Track your bus in real time and plan your journey with ease. Sign in to get started.</p>
+        <div class="social-icons">
+            <i class="fab fa-facebook"></i>
+            <i class="fab fa-twitter"></i>
+            <i class="fab fa-instagram"></i>
+            <i class="fab fa-youtube"></i>
+        </div>
+    </div>
 
+    <div>
+        <h2>Sign in</h2>
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
-        <form action="{{ url_for('login') }}" method="post">
-            <div class="input-container">
-                <label for="email">Email:</label>
-                <input type="text" id="email" name="email" required>
-                <i class="fas fa-envelope icon"></i>
+        <form action="{{ url_for('mapping') }}" method="post">
+            <label for="email">Email Address</label>
+            <input type="text" id="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember Me</label>
             </div>
-            <div class="input-container">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <i class="fas fa-lock icon"></i>
-            </div>
-            <input type="submit" value="Login">
+
+            <button type="submit" class="login-button">Sign in now</button>
+
+            <p class="forgot-password"><a href="#">Lost your password?</a></p>
+
+            <p class="terms">
+                By clicking on "Sign in now" you agree to 
+                <br>
+                <a href="#">Terms of Service</a> | <a href="#">Privacy Policy</a>
+            </p>
         </form>
     </div>
 </body>

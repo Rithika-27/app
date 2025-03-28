@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Your Exact Location</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 50px;
+            margin: 20px;
         }
 
         #location {
@@ -37,11 +39,25 @@
 
         .update-btn {
             background-color: #007bff;
-            display: none; /* Initially hidden */
+            display: none;
         }
 
         .update-btn:hover {
             background-color: #0056b3;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: gray;
+        }
+
+        #map {
+            height: 400px;
+            width: 80%;
+            margin: 20px auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -55,13 +71,28 @@
     <button class="update-btn" id="updateBtn" onclick="updateLocation()">Update</button>
 
     <p id="location">Click the button to get your latitude, longitude, and address.</p>
+    <p class="status" id="status">Last update: Not updated yet.</p>
 
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         let lat, lon, address;
+        let map, marker;
+        let updateInterval;
+
+        function initMap() {
+            map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            marker = L.marker([20.5937, 78.9629]).addTo(map).bindPopup("Your Location").openPopup();
+        }
 
         function getLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
+                navigator.geolocation.getCurrentPosition(showPosition, showError, { enableHighAccuracy: true });
             } else {
                 document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
             }
@@ -81,6 +112,10 @@
                     address = data.display_name;
                     document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Address: ${address}`;
                     document.getElementById("updateBtn").style.display = "inline-block"; // Show update button
+                    document.getElementById("status").innerHTML = "Last update: Just now";
+
+                    updateMap(lat, lon);
+                    startAutoUpdate();
                 })
                 .catch(error => {
                     document.getElementById("location").innerHTML = `Latitude: ${lat} <br> Longitude: ${lon} <br> Unable to retrieve address.`;
@@ -101,12 +136,26 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    alert(data.message);
+                    console.log("Location updated:", data);
+                    document.getElementById("status").innerHTML = "Last update: " + new Date().toLocaleTimeString();
                 })
                 .catch(error => {
-                    alert("Error updating location");
-                    console.error("Error:", error);
+                    console.error("Error updating location:", error);
                 });
+        }
+
+        function updateMap(latitude, longitude) {
+            marker.setLatLng([latitude, longitude]);
+            map.setView([latitude, longitude], 15);
+        }
+
+        function startAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval); // Prevent multiple intervals
+            }
+            updateInterval = setInterval(() => {
+                getLocation(); // Refresh location automatically
+            }, 60000);
         }
 
         function showError(error) {
@@ -127,6 +176,11 @@
             }
             document.getElementById("location").innerHTML = errorMsg;
         }
+
+        window.onload = () => {
+            initMap();
+            getLocation();
+        };
     </script>
 </body>
 

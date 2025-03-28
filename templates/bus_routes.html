@@ -6,65 +6,111 @@
     <title>Bus Routes</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #000000; /* Black background */
-            color: #ffffff; /* White text */
+            background: url("{{ url_for('static', filename='bg2.jpg') }}") no-repeat center/cover;
+            background-color: #121212; /* Dark background */
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Center the content vertically */
             flex-direction: column;
-        }
-
-        .container {
-            max-width: 1000px;
-            width: 100%;
-            padding: 20px;
-            border: 2px solid #FFD700; /* Gold border */
-            border-radius: 10px;
-            background-color: #1c1c1c; /* Dark background */
+            min-height: 100vh;
         }
 
         h2 {
+            font-size: 32px;
+            font-weight: bold;
+            color: black;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 30px;
             text-align: center;
-            color: #FFD700; /* Gold heading */
-            margin-bottom: 20px;
         }
 
-        table { 
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+
+        .ticket-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1200px;
+        }
+
+        .ticket {
+            background: rgba(28, 28, 28, 0.8); /* Transparent Dark Background */
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            width: 350px;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            position: relative;
+            animation: float 4s infinite ease-in-out;
+            backdrop-filter: blur(5px);
+        }
+
+        .ticket:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .ticket-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #B7E2E9;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .ticket-info {
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .ticket-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .ticket-buttons a {
+            background: white;
+            color: black;
+            padding: 10px 18px;
+            border-radius: 50px; /* Fully rounded buttons */
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s ease-in-out;
+            border: 2px solid white;
+        }
+
+        .ticket-buttons a:hover {
+            background: black;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .ticket::after {
+            content: "";
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table, th, td {
-            border: 1px solid #FFD700; /* Gold borders */
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #FFD700; /* Gold background for headers */
-            color: black; /* Black text on headers */
-        }
-
-        td {
-            background-color: #333333; /* Dark background for table rows */
-            color: #ffffff; /* White text */
-        }
-
-        a {
-            color: #FFD700; /* Gold link color */
-            text-decoration: underline; /* Underline for links */
-        }
-
-        a:hover {
-            color: #e6b800; /* Slightly darker gold on hover */
+            height: 1px;
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.5),
+                rgba(255, 255, 255, 0.5) 5px,
+                transparent 5px,
+                transparent 10px
+            );
+            display: block;
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -72,34 +118,21 @@
 
 <h2>Available Bus Routes</h2>
 
-<div class="container">
+<div class="ticket-container">
     {% if bus_routes %}
-    <table>
-        <tr>
-            <th>Bus Name</th>
-            <th>Bus Number</th>
-            <th>Start Location</th>
-            <th>End Location</th>
-            <th>Timing</th>
-            <th>Tracking</th> <!-- Column names changed -->
-        </tr>
         {% for bus in bus_routes %}
-        <tr>
-            <td>{{ bus['bus_name'] }}</td>
-            <td>{{ bus['bus_number'] }}</td>
-            <td>{{ bus['start_location'] }}</td>
-            <td>{{ bus['end_location'] }}</td>
-            <td>
-                <a href="{{ url_for('bus_timing', bus_id=bus['bus_id']) }}">View</a> <!-- Link with underline -->
-            </td>
-            <td>
-                <a href="{{ url_for('track_bus', bus_id=bus['bus_id']) }}">Track</a> <!-- Link renamed to 'Track' -->
-            </td>
-        </tr>
+        <div class="ticket">
+            <div class="ticket-header">{{ bus['bus_name'] }} ({{ bus['bus_number'] }})</div>
+            <div class="ticket-info">From: {{ bus['start_location'] }}</div>
+            <div class="ticket-info">To: {{ bus['end_location'] }}</div>
+            <div class="ticket-buttons">
+                <a href="{{ url_for('bus_timing', bus_id=bus['bus_id']) }}">View</a>
+                <a href="{{ url_for('track_bus', bus_id=bus['bus_id']) }}">Track</a>
+            </div>
+        </div>
         {% endfor %}
-    </table>
     {% else %}
-    <p>No bus routes found for the specified locations.</p>
+        <p>No bus routes found for the specified locations.</p>
     {% endif %}
 </div>
 
